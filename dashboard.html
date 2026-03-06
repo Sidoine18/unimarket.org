@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Dashboard | UniMarket Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2563eb; --bg: #f8fafc; --white: #ffffff;
+            --text: #0f172a; --danger: #ef4444; --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 40px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+
+        /* --- BARRE DE RETOUR --- */
+        .top-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+        .btn-back { 
+            width: 45px; height: 45px; background: white; border-radius: 15px; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-decoration: none;
+        }
+
+        /* --- HEADER DASHBOARD --- */
+        .dash-header { 
+            background: white; padding: 25px; border-radius: 24px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02); margin-bottom: 25px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            position: relative;
+        }
+        
+        /* --- PHOTO DE PROFIL --- */
+        .profile-upload { position: relative; margin-bottom: 15px; cursor: pointer; }
+        .avatar-container { 
+            width: 90px; height: 90px; border-radius: 30px; 
+            background: var(--primary); border: 4px solid #eff6ff;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-container i { color: white; font-size: 2rem; }
+        .cam-badge {
+            position: absolute; bottom: -5px; right: -5px; 
+            background: var(--primary); color: white; width: 30px; height: 30px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            border: 3px solid white; font-size: 0.8rem;
+        }
+
+        .btn-logout { 
+            position: absolute; top: 15px; right: 15px;
+            background: #fee2e2; color: var(--danger); border: none; 
+            padding: 8px; border-radius: 10px; cursor: pointer; 
+        }
+
+        /* --- LE RESTE DU STYLE (Stats & Liste) --- */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 18px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
+        .stat-card span { display: block; color: #64748b; font-size: 0.75rem; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; }
+        .stat-card h2 { font-size: 1.3rem; font-weight: 800; }
+
+        .my-ad-card { 
+            background: white; border-radius: 20px; padding: 12px; display: flex; 
+            gap: 15px; margin-bottom: 12px; align-items: center; border: 1px solid #f1f5f9; 
+        }
+        .my-ad-img { width: 70px; height: 70px; border-radius: 14px; object-fit: cover; }
+        .my-ad-info { flex: 1; }
+        .my-ad-info h3 { font-size: 0.9rem; font-weight: 700; }
+        .btn-delete { background: #fff1f2; color: var(--danger); border: none; padding: 10px; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-nav">
+            <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i></a>
+            <h1 style="font-size: 1.1rem; font-weight: 800;">Tableau de bord</h1>
+            <div style="width:45px"></div> </div>
+
+        <div class="dash-header">
+            <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-power-off"></i></button>
+            
+            <div class="profile-upload" onclick="document.getElementById('avatarInput').click()">
+                <div class="avatar-container" id="avatarBox">
+                    <i class="fa-solid fa-user" id="defaultIcon"></i>
+                    <img id="profileImg" src="" style="display:none;">
+                </div>
+                <div class="cam-badge"><i class="fa-solid fa-camera"></i></div>
+                <input type="file" id="avatarInput" hidden accept="image/*">
+            </div>
+
+            <h2 style="font-size: 1.2rem; font-weight: 800;" id="user-name">...</h2>
+            <p style="font-size: 0.85rem; color: #64748b; font-weight: 600;" id="user-phone">Étudiant UniMarket</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>En vente</span>
+                <h2 id="count-ads">0</h2>
+            </div>
+            <div class="stat-card">
+                <span>Valeur Totale</span>
+                <h2 id="total-value" style="color: var(--success);">0 F</h2>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <h3 style="font-weight: 800;">Mes publications</h3>
+            <a href="publier.html" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.9rem;">+ Publier</a>
+        </div>
+
+        <div id="my-ads-list"></div>
+    </div>
+
+    <script>
+        const session = JSON.parse(localStorage.getItem('unimarket_session'));
+        const allAds = JSON.parse(localStorage.getItem('unimarket_ads')) || [];
+
+        if (!session) window.location.href = 'login.html';
+
+        function init() {
+            document.getElementById('user-name').innerText = session.fullname;
+            document.getElementById('user-phone').innerText = "WA: " + session.whatsapp;
+
+            // Charger la photo de profil si elle existe
+            if (session.profilePic) {
+                const img = document.getElementById('profileImg');
+                img.src = session.profilePic;
+                img.style.display = 'block';
+                document.getElementById('defaultIcon').style.display = 'none';
+            }
+
+            const myAds = allAds.filter(ad => ad.vendeur === session.fullname);
+            document.getElementById('count-ads').innerText = myAds.length;
+            
+            let total = 0;
+            myAds.forEach(ad => total += parseInt(ad.price));
+            document.getElementById('total-value').innerText = total.toLocaleString() + " F";
+
+            renderAds(myAds);
+        }
+
+        // Gestion du chargement de la photo
+        document.getElementById('avatarInput').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Image = event.target.result;
+                
+                // Mettre à jour l'affichage
+                const img = document.getElementById('profileImg');
+                img.src = base64Image;
+                img.style.display = 'block';
+                document.getElementById('defaultIcon').style.display = 'none';
+
+                // Sauvegarder dans la session
+                session.profilePic = base64Image;
+                localStorage.setItem('unimarket_session', JSON.stringify(session));
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        function renderAds(ads) {
+            const list = document.getElementById('my-ads-list');
+            list.innerHTML = ads.length ? '' : '<p style="text-align:center; padding:30px; color:gray;">Aucun article.</p>';
+            
+            ads.forEach(ad => {
+                list.innerHTML += `
+                    <div class="my-ad-card">
+                        <img src="${ad.image}" class="my-ad-img">
+                        <div class="my-ad-info">
+                            <h3 class="ad-title">${ad.title}</h3>
+                            <p style="color:var(--primary); font-weight:800;">${parseInt(ad.price).toLocaleString()} F</p>
+                        </div>
+                        <button class="btn-delete" onclick="deleteAd(${ad.id})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteAd(id) {
+            if(confirm("Supprimer cet article ?")) {
+                const filtered = allAds.filter(ad => ad.id !== id);
+                localStorage.setItem('unimarket_ads', JSON.stringify(filtered));
+                window.location.reload();
+            }
+        }
+
+        function logout() {
+            if(confirm("Se déconnecter ?")) {
+                localStorage.removeItem('unimarket_session');
+                window.location.href = 'index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

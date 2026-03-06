@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendre un article | UniMarket</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --white: #ffffff; --text: #0f172a; --muted: #64748b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 40px; }
+        
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        
+        header { padding: 10px 0 25px; display: flex; align-items: center; gap: 15px; }
+        .btn-back { width: 45px; height: 45px; border-radius: 15px; background: var(--white); display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        .publish-card { background: var(--white); padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        
+        /* Form Styles */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 800; margin-bottom: 8px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; 
+            outline: none; transition: 0.3s; font-size: 0.95rem; background: #f8fafc;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: white; }
+
+        /* Image Upload */
+        .image-placeholder { 
+            width: 100%; height: 200px; background: #f1f5f9; border: 2px dashed #cbd5e1; 
+            border-radius: 20px; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; cursor: pointer; position: relative; overflow: hidden; 
+        }
+        .image-placeholder img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        .image-placeholder i { font-size: 2rem; color: #94a3b8; margin-bottom: 8px; }
+
+        .btn-publish { 
+            width: 100%; background: var(--primary); color: white; border: none; 
+            padding: 18px; border-radius: 16px; font-size: 1rem; font-weight: 800; 
+            cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Modal Boost */
+        #boostModal { 
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(15, 23, 42, 0.8); z-index:9999; align-items:center; 
+            justify-content:center; backdrop-filter: blur(8px); padding: 20px;
+        }
+        .modal-content { 
+            background:white; width:100%; max-width:400px; padding:35px; 
+            border-radius:30px; text-align:center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i></a>
+            <h1 style="font-size: 1.3rem; font-weight: 800;">Publier une annonce</h1>
+        </header>
+
+        <div class="publish-card">
+            <form id="publishForm">
+                <div class="form-group">
+                    <label>Photo de l'article</label>
+                    <div class="image-placeholder" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">Cliquez pour ajouter</span>
+                        <img id="previewImg" style="display:none;">
+                    </div>
+                    <input type="file" id="fileInput" hidden accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Titre de l'annonce</label>
+                    <input type="text" id="title" placeholder="Ex: iPhone 13 Pro Max" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Votre Université / Campus</label>
+                    <select id="university" required>
+                        <option value="" disabled selected>Où vous trouvez-vous ?</option>
+                        <option value="UAC - Abomey-Calavi">UAC (Abomey-Calavi)</option>
+                        <option value="UAC - Cotonou (Gbégamey)">UAC (Gbégamey)</option>
+                        <option value="UP - Porto-Novo">UP (Porto-Novo)</option>
+                        <option value="UNSTIM - Abomey">UNSTIM (Abomey)</option>
+                        <option value="Parakou - UNIPAR">Parakou (UNIPAR)</option>
+                        <option value="Autre - Campus Privé">Autre Campus Privé</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select id="category" required>
+                            <option value="Électronique">📱 Électronique</option>
+                            <option value="Mode">👕 Mode</option>
+                            <option value="Nourriture">🍔 Food</option>
+                            <option value="Scolaire">📚 Scolaire</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Prix (FCFA)</label>
+                        <input type="number" id="price" placeholder="Ex: 5000" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="desc" rows="3" placeholder="État de l'article, détails importants..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-publish">Vérifier et publier</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="boostModal">
+        <div class="modal-content">
+            <div style="font-size:3.5rem; margin-bottom: 15px;">🚀</div>
+            <h2 style="font-weight:900; color: var(--text);">Booster la vente ?</h2>
+            <p style="color:#64748b; font-size:0.95rem; margin: 15px 0 25px; line-height: 1.5;">
+                Apparaissez en <b>première position</b> pendant 7 jours pour seulement <b>500 FCFA</b>.
+            </p>
+            
+            <button id="pay-button" style="width:100%; background:var(--primary); color:white; border:none; padding:18px; border-radius:18px; font-weight:800; cursor:pointer; font-size: 1rem;">
+                Payer 500F (Boosté)
+            </button>
+            <button onclick="enregistrerAnnonce()" style="width:100%; background:none; border:none; color:#94a3b8; font-weight:700; cursor:pointer; margin-top:15px; font-size: 0.9rem;">
+                Non merci, publier normalement
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const session = JSON.parse(localStorage.getItem('unimarket_session'));
+        if (!session) window.location.href = 'login.html';
+
+        let tempAd = null;
+
+        // Preview Image
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('previewImg');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(this.files[0]);
+        });
+
+        // Formulaire
+        document.getElementById('publishForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const msgWA = `Salut ${session.fullname}, je suis intéressé par votre annonce "${document.getElementById('title').value}" sur UniMarket.`;
+            
+            tempAd = {
+                id: Date.now(),
+                title: document.getElementById('title').value,
+                university: document.getElementById('university').value,
+                category: document.getElementById('category').value, 
+                price: document.getElementById('price').value,
+                desc: document.getElementById('desc').value,
+                vendeur: session.fullname,
+                whatsapp: `https://wa.me/229${session.whatsapp}?text=${encodeURIComponent(msgWA)}`,
+                image: document.getElementById('previewImg').src,
+                isBoosted: false,
+                date: new Date().toLocaleDateString()
+            };
+
+            document.getElementById('boostModal').style.display = 'flex';
+        });
+
+        // LOGIQUE FEDAPAY CORRIGÉE
+        document.getElementById('pay-button').addEventListener('click', function() {
+            FedaPay.init({
+                public_key: 'pk_live_y7fqKxfU03QR3wqVRvI0k3GY', // TA CLÉ LIVE
+                transaction: {
+                    amount: 500,
+                    description: 'Boost UniMarket: ' + tempAd.title
+                },
+                customer: {
+                    email: session.email || 'etudiant@unimarket.bj',
+                    lastname: session.fullname
+                },
+                onComplete: function(response) {
+                    // Attention: FedaPay retourne 'approved' ou 'success' selon la version
+                    if (response.status === 'approved' || response.status === 'successful') {
+                        tempAd.isBoosted = true;
+                        enregistrerAnnonce();
+                    } else {
+                        alert("Le paiement n'a pas été finalisé.");
+                    }
+                }
+            });
+            FedaPay.open();
+        });
+
+        function enregistrerAnnonce() {
+            let ads = JSON.parse(localStorage.getItem('unimarket_ads')) || [];
+            ads.unshift(tempAd); // Ajoute au début
+            localStorage.setItem('unimarket_ads', JSON.stringify(ads));
+            
+            alert(tempAd.isBoosted ? "🚀 Annonce boostée avec succès !" : "✅ Annonce publiée !");
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

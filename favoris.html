@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Favoris | UniMarket</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --text: #0f172a;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 30px; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+
+        /* --- HEADER --- */
+        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+        .btn-back { 
+            width: 40px; height: 40px; background: white; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--text); text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- LISTE DES FAVORIS --- */
+        .fav-list { display: grid; gap: 15px; }
+        
+        .fav-card { 
+            background: white; border-radius: 20px; padding: 12px; 
+            display: flex; gap: 15px; align-items: center;
+            border: 1px solid #f1f5f9; position: relative;
+            transition: transform 0.2s;
+        }
+
+        .fav-img { width: 85px; height: 85px; border-radius: 14px; object-fit: cover; cursor: pointer; }
+        
+        .fav-info { flex: 1; cursor: pointer; }
+        .fav-info h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+        .fav-info p { font-size: 0.9rem; font-weight: 800; color: var(--primary); }
+        .fav-uni { font-size: 0.7rem; color: #64748b; margin-top: 5px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+
+        .btn-remove { 
+            background: #fff1f2; color: var(--danger); border: none; 
+            width: 35px; height: 35px; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- EMPTY STATE --- */
+        .empty-fav {
+            text-align: center; padding: 60px 20px;
+        }
+        .empty-fav i { font-size: 3rem; color: #cbd5e1; margin-bottom: 15px; }
+        .btn-shop {
+            display: inline-block; background: var(--primary); color: white;
+            padding: 12px 25px; border-radius: 12px; text-decoration: none;
+            font-weight: 700; margin-top: 20px; font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i></a>
+            <h1 style="font-size: 1.2rem; font-weight: 800;">Coups de ❤️</h1>
+            <div style="width:40px"></div>
+        </header>
+
+        <div id="fav-container" class="fav-list">
+            </div>
+    </div>
+
+    <script>
+        function loadFavoris() {
+            const container = document.getElementById('fav-container');
+            const favs = JSON.parse(localStorage.getItem('unimarket_favs')) || [];
+
+            if (favs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-fav">
+                        <i class="fa-regular fa-heart"></i>
+                        <h2 style="font-weight:800;">Aucun coup de cœur ?</h2>
+                        <p style="color:#64748b; margin-top:10px;">Enregistrez les articles qui vous plaisent pour les retrouver ici.</p>
+                        <a href="index.html" class="btn-shop">Découvrir les annonces</a>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            favs.forEach(ad => {
+                container.innerHTML += `
+                    <div class="fav-card">
+                        <img src="${ad.image}" class="fav-img" onclick="goToArticle(${ad.id})">
+                        <div class="fav-info" onclick="goToArticle(${ad.id})">
+                            <h3>${ad.title}</h3>
+                            <p>${parseInt(ad.price).toLocaleString()} F</p>
+                            <div class="fav-uni">
+                                <i class="fa-solid fa-location-dot"></i>
+                                ${ad.university || 'Campus'}
+                            </div>
+                        </div>
+                        <button class="btn-remove" onclick="removeFav(${ad.id})">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeFav(id) {
+            let favs = JSON.parse(localStorage.getItem('unimarket_favs')) || [];
+            favs = favs.filter(f => f.id != id);
+            localStorage.setItem('unimarket_favs', JSON.stringify(favs));
+            loadFavoris(); // Rafraîchir l'affichage
+        }
+
+        function goToArticle(id) {
+            window.location.href = `article.html?id=${id}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFavoris);
+    </script>
+</body>
+</html>
