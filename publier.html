@@ -22,7 +22,6 @@
 
         .publish-card { background: var(--white); padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
         
-        /* Form Styles */
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 0.85rem; font-weight: 800; margin-bottom: 8px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
         .form-group input, .form-group textarea, .form-group select { 
@@ -31,7 +30,6 @@
         }
         .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: white; }
 
-        /* Image Upload */
         .image-placeholder { 
             width: 100%; height: 200px; background: #f1f5f9; border: 2px dashed #cbd5e1; 
             border-radius: 20px; display: flex; flex-direction: column; align-items: center; 
@@ -44,7 +42,9 @@
             width: 100%; background: var(--primary); color: white; border: none; 
             padding: 18px; border-radius: 16px; font-size: 1rem; font-weight: 800; 
             cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            transition: 0.3s;
         }
+        .btn-publish:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
         /* Modal Boost */
         #boostModal { 
@@ -133,11 +133,25 @@
             <button id="pay-button" style="width:100%; background:var(--primary); color:white; border:none; padding:18px; border-radius:18px; font-weight:800; cursor:pointer; font-size: 1rem;">
                 Payer 500F (Boosté)
             </button>
-            <button onclick="enregistrerAnnonce()" style="width:100%; background:none; border:none; color:#94a3b8; font-weight:700; cursor:pointer; margin-top:15px; font-size: 0.9rem;">
+            <button id="cancelBoost" style="width:100%; background:none; border:none; color:#94a3b8; font-weight:700; cursor:pointer; margin-top:15px; font-size: 0.9rem;">
                 Non merci, publier normalement
             </button>
         </div>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJfyELCr3EBjHydo2JSL2akShecqcx0yA",
+            authDomain: "unimarket-d6259.firebaseapp.com",
+            projectId: "unimarket-d6259",
+            storageBucket: "unimarket-d6259.firebasestorage.app",
+            messagingSenderId: "236655322274",
+            appId: "1:236655322274:web:c91d9c59dba3d8d22d63fb",
+            measurementId: "G-2TL2FGK6SL"
+        };
+        const app = initializeApp(firebaseConfig);
+    </script>
 
     <script>
         const session = JSON.parse(localStorage.getItem('unimarket_session'));
@@ -179,10 +193,10 @@
             document.getElementById('boostModal').style.display = 'flex';
         });
 
-        // LOGIQUE FEDAPAY CORRIGÉE
+        // LOGIQUE FEDAPAY
         document.getElementById('pay-button').addEventListener('click', function() {
             FedaPay.init({
-                public_key: 'pk_live_y7fqKxfU03QR3wqVRvI0k3GY', // TA CLÉ LIVE
+                public_key: 'pk_live_y7fqKxfU03QR3wqVRvI0k3GY',
                 transaction: {
                     amount: 500,
                     description: 'Boost UniMarket: ' + tempAd.title
@@ -192,7 +206,6 @@
                     lastname: session.fullname
                 },
                 onComplete: function(response) {
-                    // Attention: FedaPay retourne 'approved' ou 'success' selon la version
                     if (response.status === 'approved' || response.status === 'successful') {
                         tempAd.isBoosted = true;
                         enregistrerAnnonce();
@@ -204,9 +217,19 @@
             FedaPay.open();
         });
 
+        // Publication simple
+        document.getElementById('cancelBoost').onclick = enregistrerAnnonce;
+
         function enregistrerAnnonce() {
             let ads = JSON.parse(localStorage.getItem('unimarket_ads')) || [];
-            ads.unshift(tempAd); // Ajoute au début
+            
+            // Si boosté, on le met tout en haut, sinon à la suite
+            if (tempAd.isBoosted) {
+                ads.unshift(tempAd); 
+            } else {
+                ads.push(tempAd);
+            }
+            
             localStorage.setItem('unimarket_ads', JSON.stringify(ads));
             
             alert(tempAd.isBoosted ? "🚀 Annonce boostée avec succès !" : "✅ Annonce publiée !");
