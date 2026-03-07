@@ -1,231 +1,134 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Détails de l'article | UniMarket</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-    <style>
-        :root {
-            --primary: #2563eb;
-            --bg: #f8fafc;
-            --white: #ffffff;
-            --text: #0f172a;
-            --muted: #64748b;
-            --whatsapp: #25d366;
+    // 1. Ta config Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBJfyELCr3EBjHydo2JSL2akShecqcx0yA",
+        authDomain: "unimarket-d6259.firebaseapp.com",
+        projectId: "unimarket-d6259",
+        storageBucket: "unimarket-d6259.firebasestorage.app",
+        messagingSenderId: "236655322274",
+        appId: "1:236655322274:web:c91d9c59dba3d8d22d63fb",
+        measurementId: "G-2TL2FGK6SL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Variables globales pour cette page
+    let currentAd = null;
+    const params = new URLSearchParams(window.location.search);
+    const adId = params.get('id');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    // 2. Charger l'article depuis Firestore
+    async function chargerArticle() {
+        if (!adId) {
+            window.location.href = 'index.html';
+            return;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--white); color: var(--text); padding-bottom: 100px; }
+        try {
+            const adRef = doc(db, "ads", adId); // On cherche dans la collection "ads"
+            const adSnap = await getDoc(adRef);
 
-        /* --- NAVIGATION --- */
-        .top-nav {
-            position: fixed; top: 20px; left: 20px; right: 20px;
-            display: flex; justify-content: space-between; z-index: 100;
-        }
-        .btn-circle {
-            width: 45px; height: 45px; background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(10px); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--text); text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        /* --- IMAGE SECTION --- */
-        .main-img-container { width: 100%; height: 400px; background: #f1f5f9; position: relative; }
-        .main-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .badge-boost {
-            position: absolute; bottom: 20px; left: 20px;
-            background: var(--primary); color: white; padding: 6px 12px;
-            border-radius: 10px; font-size: 0.75rem; font-weight: 800;
-        }
-
-        /* --- CONTENT SECTION --- */
-        .content { 
-            padding: 25px; background: white; 
-            border-top-left-radius: 35px; border-top-right-radius: 35px;
-            margin-top: -30px; position: relative;
-        }
-
-        .category-tag {
-            display: inline-block; padding: 5px 12px; background: #eff6ff;
-            color: var(--primary); border-radius: 8px; font-size: 0.75rem;
-            font-weight: 700; margin-bottom: 10px;
-        }
-
-        .price-tag { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
-        .title { font-size: 1.4rem; font-weight: 800; line-height: 1.2; margin-bottom: 15px; }
-
-        .location { 
-            display: flex; align-items: center; gap: 8px; color: var(--muted);
-            font-size: 0.9rem; font-weight: 600; margin-bottom: 25px;
-        }
-
-        .divider { height: 1px; background: #f1f5f9; margin: 25px 0; }
-
-        .section-label { font-size: 1rem; font-weight: 800; margin-bottom: 10px; }
-        .description { font-size: 0.95rem; color: #475569; line-height: 1.6; }
-
-        /* --- SELLER CARD --- */
-        .seller-card {
-            display: flex; align-items: center; gap: 15px;
-            background: #f8fafc; padding: 15px; border-radius: 20px;
-            border: 1px solid #f1f5f9;
-        }
-        .seller-avatar {
-            width: 50px; height: 50px; background: var(--primary);
-            color: white; border-radius: 15px; display: flex;
-            align-items: center; justify-content: center; font-weight: 800;
-        }
-        .seller-info h4 { font-size: 0.95rem; font-weight: 800; }
-        .seller-info p { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
-
-        /* --- ACTION BAR --- */
-        .action-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: white; padding: 20px; display: flex; gap: 15px;
-            border-top: 1px solid #f1f5f9; align-items: center;
-        }
-        .btn-whatsapp {
-            flex: 1; background: var(--whatsapp); color: white;
-            text-decoration: none; padding: 18px; border-radius: 18px;
-            display: flex; align-items: center; justify-content: center;
-            gap: 10px; font-weight: 800; font-size: 1rem;
-            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2);
-        }
-        .btn-fav {
-            width: 55px; height: 55px; border-radius: 18px;
-            background: #f1f5f9; color: var(--text); border: none;
-            font-size: 1.2rem; cursor: pointer;
-        }
-        .btn-fav.active { color: #ef4444; }
-    </style>
-</head>
-<body>
-
-    <nav class="top-nav">
-        <a href="index.html" class="btn-circle"><i class="fa-solid fa-chevron-left"></i></a>
-        <button class="btn-circle" onclick="partager()"><i class="fa-solid fa-share-nodes"></i></button>
-    </nav>
-
-    <div class="main-img-container">
-        <img id="art-img" src="" alt="Article">
-        <div id="boost-tag" style="display:none;" class="badge-boost">🚀 SPONSORISÉ</div>
-    </div>
-
-    <main class="content">
-        <span class="category-tag" id="art-cat">Catégorie</span>
-        <p class="price-tag" id="art-price">0 F</p>
-        <h1 class="title" id="art-title">Chargement...</h1>
-        
-        <div class="location">
-            <i class="fa-solid fa-location-dot"></i>
-            <span id="art-uni">Université non spécifiée</span>
-        </div>
-
-        <div class="section-label">Description</div>
-        <p class="description" id="art-desc">...</p>
-
-        <div class="divider"></div>
-
-        <div class="section-label">À propos du vendeur</div>
-        <div class="seller-card">
-            <div class="seller-avatar" id="seller-init">?</div>
-            <div class="seller-info">
-                <h4 id="seller-name">Vendeur UniMarket</h4>
-                <p id="art-date">Publié le --/--/--</p>
-            </div>
-        </div>
-    </main>
-
-    <div class="action-bar">
-        <button class="btn-fav" id="fav-btn" onclick="toggleFavoris()">
-            <i class="fa-regular fa-heart"></i>
-        </button>
-        <a href="#" id="wa-link" class="btn-whatsapp">
-            <i class="fa-brands fa-whatsapp"></i>
-            Discuter sur WhatsApp
-        </a>
-    </div>
-
-    <script>
-        // 1. Récupérer l'ID dans l'URL (ex: article.html?id=12345)
-        const params = new URLSearchParams(window.location.search);
-        const adId = params.get('id');
-        const allAds = JSON.parse(localStorage.getItem('unimarket_ads')) || [];
-        
-        // Trouver l'article correspondant
-        const ad = allAds.find(item => item.id == adId);
-
-        function chargerArticle() {
-            if (!ad) {
-                document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h2>Oups ! Annonce introuvable.</h2><br><a href='index.html'>Retour à l'accueil</a></div>";
+            if (!adSnap.exists()) {
+                document.body.innerHTML = "<div style='text-align:center; padding:50px;'><h2>Annonce expirée ou introuvable.</h2><br><a href='index.html'>Retour à l'accueil</a></div>";
                 return;
             }
 
-            // Remplir les données
-            document.getElementById('art-img').src = ad.image;
-            document.getElementById('art-title').innerText = ad.title;
-            document.getElementById('art-price').innerText = parseInt(ad.price).toLocaleString() + " F";
-            document.getElementById('art-cat').innerText = ad.category;
-            document.getElementById('art-uni').innerText = ad.university || "Bénin, Campus";
-            document.getElementById('art-desc').innerText = ad.desc;
-            document.getElementById('seller-name').innerText = ad.vendeur;
-            document.getElementById('seller-init').innerText = ad.vendeur.charAt(0).toUpperCase();
-            document.getElementById('wa-link').href = ad.whatsapp;
-            document.getElementById('art-date').innerText = "Publié le " + (ad.date || "récemment");
+            currentAd = { id: adSnap.id, ...adSnap.data() };
 
-            if (ad.isBoosted) document.getElementById('boost-tag').style.display = 'block';
+            // Remplissage de l'interface
+            document.getElementById('art-img').src = currentAd.image;
+            document.getElementById('art-title').innerText = currentAd.title;
+            document.getElementById('art-price').innerText = parseInt(currentAd.price).toLocaleString() + " F";
+            document.getElementById('art-cat').innerText = currentAd.category;
+            document.getElementById('art-uni').innerText = currentAd.university || "Campus";
+            document.getElementById('art-desc').innerText = currentAd.desc;
+            document.getElementById('seller-name').innerText = currentAd.vendeur;
+            document.getElementById('seller-init').innerText = currentAd.vendeur.charAt(0).toUpperCase();
+            document.getElementById('wa-link').href = currentAd.whatsapp;
+            
+            if (currentAd.isBoosted) document.getElementById('boost-tag').style.display = 'block';
 
-            updateFavUI();
+            // Vérifier si l'article est déjà en favori
+            checkIfFav();
+
+        } catch (error) {
+            console.error("Erreur de chargement:", error);
+        }
+    }
+
+    // 3. Logique des Favoris (Cloud)
+    async function toggleFavoris() {
+        if (!currentUser) {
+            alert("Connectez-vous pour ajouter des favoris !");
+            window.location.href = 'login.html';
+            return;
         }
 
-        // 2. Logique des Favoris
-        function toggleFavoris() {
-            let favs = JSON.parse(localStorage.getItem('unimarket_favs')) || [];
-            const index = favs.findIndex(f => f.id == ad.id);
+        const userRef = doc(db, "users", currentUser.email);
+        const btn = document.getElementById('fav-btn');
+        const isCurrentlyFav = btn.classList.contains('active');
 
-            if (index > -1) {
-                favs.splice(index, 1); // Retirer
+        try {
+            if (isCurrentlyFav) {
+                // Retirer du Cloud
+                await updateDoc(userRef, {
+                    favorites: arrayRemove(currentAd)
+                });
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa-regular fa-heart"></i>';
             } else {
-                favs.push(ad); // Ajouter
+                // Ajouter au Cloud
+                await updateDoc(userRef, {
+                    favorites: arrayUnion(currentAd)
+                });
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
             }
-
-            localStorage.setItem('unimarket_favs', JSON.stringify(favs));
-            updateFavUI();
+        } catch (error) {
+            console.error("Erreur favoris:", error);
         }
+    }
 
-        function updateFavUI() {
-            let favs = JSON.parse(localStorage.getItem('unimarket_favs')) || [];
-            const isFav = favs.some(f => f.id == ad.id);
+    // 4. Vérifier si l'article est déjà dans le tableau favoris de l'utilisateur
+    async function checkIfFav() {
+        if (!currentUser) return;
+        
+        const userRef = doc(db, "users", currentUser.email);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+            const favs = userSnap.data().favorites || [];
+            const isFav = favs.some(f => f.id === adId);
             const btn = document.getElementById('fav-btn');
             
             if (isFav) {
-                btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
                 btn.classList.add('active');
-            } else {
-                btn.innerHTML = '<i class="fa-regular fa-heart"></i>';
-                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
             }
         }
+    }
 
-        // 3. Fonction Partager
-        function partager() {
-            if (navigator.share) {
-                navigator.share({
-                    title: ad.title,
-                    text: `Regarde ce que j'ai trouvé sur UniMarket : ${ad.title}`,
-                    url: window.location.href
-                });
-            } else {
-                alert("Lien copié !");
-                navigator.clipboard.writeText(window.location.href);
-            }
+    // 5. Partage
+    window.partager = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: currentAd.title,
+                text: `Regarde ça sur UniMarket !`,
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Lien copié !");
         }
+    };
 
-        document.addEventListener('DOMContentLoaded', chargerArticle);
-    </script>
-</body>
-</html>
+    // Rendre la fonction accessible au bouton HTML
+    window.toggleFavoris = toggleFavoris;
+
+    document.addEventListener('DOMContentLoaded', chargerArticle);
+</script>
