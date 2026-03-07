@@ -23,7 +23,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-light); color: var(--text-main); line-height: 1.5; padding-bottom: 90px; }
         
-        /* --- HEADER OPTIMISÉ --- */
+        /* --- HEADER --- */
         header { 
             background: rgba(255, 255, 255, 0.8); 
             backdrop-filter: blur(10px);
@@ -35,12 +35,13 @@
         }
         .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
         .nav-flex { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; text-decoration: none; }
         .logo span { color: var(--text-main); }
         
         .auth-btns { display: flex; gap: 10px; align-items: center; }
         .btn-fill { background: var(--primary); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; text-decoration: none; transition: 0.3s; }
         .btn-fill:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-lite { text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 0.9rem; }
 
         /* --- HERO & SEARCH --- */
         .hero { 
@@ -64,7 +65,7 @@
         }
         .search-container i { position: absolute; left: 40px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.2rem; }
 
-        /* --- PRÉSENTATION / TRUST --- */
+        /* --- TRUST BAR --- */
         .trust-bar { 
             display: flex; 
             justify-content: center; 
@@ -104,7 +105,7 @@
         }
         .cat-item.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* --- GRILLE D'ANNONCES --- */
+        /* --- GRILLE --- */
         .ads-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
         @media (min-width: 768px) { .ads-grid { grid-template-columns: repeat(4, 1fr); } }
 
@@ -116,6 +117,7 @@
             border: 1px solid #f1f5f9;
             transition: 0.3s;
             position: relative;
+            cursor: pointer;
         }
         .ad-card:hover { transform: translateY(-5px); }
         .ad-img { width: 100%; height: 160px; background: #f1f5f9; position: relative; }
@@ -132,7 +134,7 @@
         .ad-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
         .ad-title { font-size: 0.85rem; font-weight: 600; color: var(--text-main); height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        /* --- NAVIGATION TAB BAR --- */
+        /* --- TAB BAR --- */
         .tab-bar { 
             position: fixed; bottom: 0; left: 0; right: 0; 
             background: var(--white); display: flex; 
@@ -152,26 +154,8 @@
             box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
         }
 
-        /* Style spécial pour les annonces Boostées */
-.boosted-card {
-    border: 2px solid var(--primary) !important;
-    background: #f0f7ff !important; /* Un léger fond bleu */
-}
-
-.boosted-card .ad-title {
-    color: var(--primary);
-}
-
-/* Animation discrète pour attirer l'oeil sur le sponsorisé */
-@keyframes pulse-border {
-    0% { border-color: var(--primary); }
-    50% { border-color: #fbbf24; } /* Or */
-    100% { border-color: var(--primary); }
-}
-
-.boosted-card {
-    animation: pulse-border 3s infinite;
-}
+        .boosted-card { border: 2px solid var(--primary) !important; background: #f0f7ff !important; animation: pulse-border 3s infinite; }
+        @keyframes pulse-border { 0% { border-color: var(--primary); } 50% { border-color: #fbbf24; } 100% { border-color: var(--primary); } }
     </style>
 </head>
 <body>
@@ -180,8 +164,8 @@
         <div class="container nav-flex">
             <a href="index.html" class="logo">Uni<span>Market</span></a>
             <div id="auth-zone" class="auth-btns">
-               
-                <a href="register.html" class="btn-fill">Vendre</a>
+                <a href="login.html" class="btn-lite">Connexion</a>
+                <a href="register.html" class="btn-fill">S'inscrire</a>
             </div>
         </div>
     </header>
@@ -213,8 +197,7 @@
             </div>
         </section>
 
-        <div class="ads-grid" id="ads-container">
-            </div>
+        <div class="ads-grid" id="ads-container"></div>
     </main>
 
     <nav class="tab-bar">
@@ -225,31 +208,46 @@
         <a href="dashboard.html" class="tab-item"><i class="fa-solid fa-circle-user"></i>Compte</a>
     </nav>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJfyELCr3EBjHydo2JSL2akShecqcx0yA",
+            authDomain: "unimarket-d6259.firebaseapp.com",
+            projectId: "unimarket-d6259",
+            storageBucket: "unimarket-d6259.firebasestorage.app",
+            messagingSenderId: "236655322274",
+            appId: "1:236655322274:web:c91d9c59dba3d8d22d63fb",
+            measurementId: "G-2TL2FGK6SL"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
+
     <script>
     const UniMarket = {
         session: JSON.parse(localStorage.getItem('unimarket_session')),
 
-        // 1. RÉCUPÉRATION ET TRI (Boostées d'abord)
         getAdsSorted() {
             const rawAds = JSON.parse(localStorage.getItem('unimarket_ads')) || [];
             return rawAds.sort((a, b) => {
-                if (a.isBoosted === b.isBoosted) {
-                    return b.id - a.id; // Si égalité, le plus récent en premier
-                }
-                return a.isBoosted ? -1 : 1; // La boostée passe devant
+                if (a.isBoosted === b.isBoosted) return b.id - a.id;
+                return a.isBoosted ? -1 : 1;
             });
         },
 
         init() {
-            this.ads = this.getAdsSorted(); // Charge les annonces triées
+            this.ads = this.getAdsSorted();
             this.updateUI();
             this.renderAds(this.ads);
             this.checkSecurity();
         },
 
-        // 2. AFFICHAGE DANS LA GRILLE
         renderAds(data) {
             const container = document.getElementById('ads-container');
+            if(!container) return;
             container.innerHTML = data.length > 0 ? '' : '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">Aucune annonce trouvée...</p>';
 
             data.forEach(ad => {
@@ -269,26 +267,19 @@
             });
         },
 
-        // 3. FILTRE (Gardant le tri boosté)
         filter(category, el) {
             document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
-
             const allSorted = this.getAdsSorted();
-            const filtered = category === 'Toutes' 
-                ? allSorted 
-                : allSorted.filter(ad => ad.category === category);
-            
+            const filtered = category === 'Toutes' ? allSorted : allSorted.filter(ad => ad.category === category);
             this.renderAds(filtered);
         },
 
-        // 4. RECHERCHE
         search() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const allSorted = this.getAdsSorted();
             const filtered = allSorted.filter(ad => 
-                ad.title.toLowerCase().includes(query) || 
-                (ad.category && ad.category.toLowerCase().includes(query))
+                ad.title.toLowerCase().includes(query) || (ad.category && ad.category.toLowerCase().includes(query))
             );
             this.renderAds(filtered);
         },
@@ -328,8 +319,6 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => UniMarket.init());
-</script>
+    </script>
 </body>
-
 </html>
-
