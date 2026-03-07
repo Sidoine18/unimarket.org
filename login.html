@@ -64,6 +64,9 @@
             cursor: pointer;
             transition: 0.3s;
             margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 15px rgba(37, 99, 235, 0.2); }
@@ -96,7 +99,7 @@
 
             <button type="submit" class="btn-login" id="loginBtn">
                 <i class="fa-solid fa-circle-notch loader" id="loader"></i>
-                Se connecter
+                <span>Se connecter</span>
             </button>
             
             <div style="margin-top: 15px;">
@@ -109,9 +112,28 @@
         </p>
     </div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJfyELCr3EBjHydo2JSL2akShecqcx0yA",
+            authDomain: "unimarket-d6259.firebaseapp.com",
+            projectId: "unimarket-d6259",
+            storageBucket: "unimarket-d6259.firebasestorage.app",
+            messagingSenderId: "236655322274",
+            appId: "1:236655322274:web:c91d9c59dba3d8d22d63fb",
+            measurementId: "G-2TL2FGK6SL"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
+
     <script>
     const loginForm = document.getElementById('loginForm');
     const loginBtn = document.getElementById('loginBtn');
+    const loader = document.getElementById('loader');
 
     loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -126,30 +148,32 @@
         const userFound = users.find(u => u.email === emailSaisi && u.password === passSaisi);
 
         if (userFound) {
-            // SUCCESS : On change l'apparence du bouton
+            // SUCCESS : On affiche l'état de chargement
             loginBtn.disabled = true;
-            loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Connexion...';
+            loader.style.display = "inline-block";
+            loginBtn.querySelector('span').innerText = 'Connexion...';
             
-            // 3. LOGIQUE CORRECTE : On ajoute l'état connecté AVANT d'enregistrer
+            // 3. On définit l'état de la session
             const userToLog = { 
                 ...userFound, 
                 isLoggedIn: true,
                 isVerified: true 
             }; 
 
-            // 4. On enregistre la session
+            // 4. On enregistre la session localement
             localStorage.setItem('unimarket_session', JSON.stringify(userToLog));
             
-            // 5. Redirection après un petit délai pour l'effet visuel
+            // 5. Redirection avec un léger délai
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 1200);
 
         } else {
-            // ERREUR : Identifiants inconnus
+            // ERREUR
             alert("Erreur : Email ou mot de passe incorrect !");
             loginBtn.disabled = false;
-            loginBtn.innerHTML = 'Se connecter';
+            loader.style.display = "none";
+            loginBtn.querySelector('span').innerText = 'Se connecter';
         }
     });
     </script>
