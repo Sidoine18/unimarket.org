@@ -7,8 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
+    
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --text: #0f172a; --muted: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -52,13 +51,29 @@
         
         <input type="text" class="code-input" id="inputCode" placeholder="0000" maxlength="4" autocomplete="off">
         
-        <button class="btn-verify" onclick="confirmCode()" id="mainBtn">Confirmer mon compte</button>
+        <button class="btn-verify" id="mainBtn">Confirmer mon compte</button>
 
         <div class="resend-box">
             <span id="timer-text">Renvoyer le code dans <span id="timer">60</span>s</span>
-            <button id="resendBtn" onclick="resendCode()">Renvoyer maintenant</button>
+            <button id="resendBtn">Renvoyer maintenant</button>
         </div>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJfyELCr3EBjHydo2JSL2akShecqcx0yA",
+            authDomain: "unimarket-d6259.firebaseapp.com",
+            projectId: "unimarket-d6259",
+            storageBucket: "unimarket-d6259.firebasestorage.app",
+            messagingSenderId: "236655322274",
+            appId: "1:236655322274:web:c91d9c59dba3d8d22d63fb",
+            measurementId: "G-2TL2FGK6SL"
+        };
+        const app = initializeApp(firebaseConfig);
+    </script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <script>
         emailjs.init("v0zJTBHfTAyzyH6RH");
@@ -68,6 +83,7 @@
         const timerText = document.getElementById('timer-text');
         const resendBtn = document.getElementById('resendBtn');
         const mainBtn = document.getElementById('mainBtn');
+        const inputCodeField = document.getElementById('inputCode');
 
         // 1. Démarrage du compte à rebours
         function startTimer() {
@@ -86,10 +102,10 @@
             }, 1000);
         }
 
-        // 2. Validation du code et création de session
-        function confirmCode() {
+        // 2. Validation du code
+        mainBtn.onclick = function confirmCode() {
             const tempUser = JSON.parse(localStorage.getItem('unimarket_temp_user'));
-            const inputCode = document.getElementById('inputCode').value.trim();
+            const inputCode = inputCodeField.value.trim();
 
             if (!tempUser) {
                 window.location.href = 'register.html';
@@ -100,29 +116,22 @@
                 mainBtn.disabled = true;
                 mainBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Activation...';
 
-                // On crée l'utilisateur validé avec isLoggedIn: true pour l'index
                 const validatedUser = { 
                     fullname: tempUser.fullname,
                     email: tempUser.email,
                     whatsapp: tempUser.whatsapp,
-                    password: tempUser.password, // Stocké pour les reconnexions futures
+                    password: tempUser.password,
                     isVerified: true,
                     isLoggedIn: true 
                 };
 
-                // SAUVEGARDE DANS LA "BASE DE DONNÉES" (unimarket_users)
                 let users = JSON.parse(localStorage.getItem('unimarket_users')) || [];
-                const alreadyExists = users.some(u => u.email === validatedUser.email);
-                
-                if (!alreadyExists) {
+                if (!users.some(u => u.email === validatedUser.email)) {
                     users.push(validatedUser);
                     localStorage.setItem('unimarket_users', JSON.stringify(users));
                 }
 
-                // CRÉATION DE LA SESSION ACTIVE
                 localStorage.setItem('unimarket_session', JSON.stringify(validatedUser));
-                
-                // NETTOYAGE
                 localStorage.removeItem('unimarket_temp_user');
 
                 setTimeout(() => {
@@ -130,12 +139,12 @@
                 }, 1000);
 
             } else {
-                alert("Code incorrect ! Vérifiez bien vos e-mails.");
+                alert("Code incorrect !");
             }
-        }
+        };
 
-        // 3. Logique de renvoi du code
-        function resendCode() {
+        // 3. Logique de renvoi
+        resendBtn.onclick = function resendCode() {
             const tempUser = JSON.parse(localStorage.getItem('unimarket_temp_user'));
             if (!tempUser) return;
 
@@ -160,11 +169,11 @@
                     resendBtn.innerText = "Renvoyer maintenant";
                     startTimer();
                 })
-                .catch(err => {
-                    alert("Erreur d'envoi. Réessayez.");
+                .catch(() => {
+                    alert("Erreur d'envoi.");
                     resendBtn.disabled = false;
                 });
-        }
+        };
 
         window.onload = () => {
             if (!localStorage.getItem('unimarket_temp_user')) {
